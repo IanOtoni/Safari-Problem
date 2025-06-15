@@ -7,20 +7,24 @@ def ler_instancia_txt(nome_arquivo):
         linhas = [l.strip() for l in f if l.strip()]
 
     nome = linhas[0]
-    partida = tuple(map(int, linhas[1].split()))
-    chegada = tuple(map(int, linhas[2].split()))
+    # Conversão para float em vez de int
+    partida = tuple(map(float, linhas[1].split()))
+    chegada = tuple(map(float, linhas[2].split()))
 
-    partes = list(map(int, linhas[3].split()))
-    n_vert = partes[0]
-    poligono = [tuple(partes[i:i+2]) for i in range(1, 2*n_vert+1, 2)]
+    partes = linhas[3].split()
+    n_vert = int(partes[0])
+    # Coords como float
+    poligono = [ (float(partes[i]), float(partes[i+1]))
+                 for i in range(1, 2*n_vert+1, 2) ]
 
     qtd = int(linhas[4])
     gaiolas = []
     idx = 5
     for _ in range(qtd):
-        partes = list(map(int, linhas[idx].split()))
-        n = partes[0]
-        coords = [tuple(partes[i:i+2]) for i in range(1, 2*n+1, 2)]
+        partes = linhas[idx].split()
+        n = int(partes[0])
+        coords = [ (float(partes[i]), float(partes[i+1]))
+                   for i in range(1, 2*n+1, 2) ]
         gaiolas.append(coords)
         idx += 1
 
@@ -35,18 +39,18 @@ def desenhar_instancia(nome, partida, chegada, poligono, gaiolas, rota=None, sai
     cor_part = '#1b5e20'; cor_cheg = '#0d47a1'
 
     ax.set_facecolor(fundo)
-    # principal
+    # área principal
     patch = Polygon(poligono, closed=True, facecolor=principal, edgecolor='black', alpha=0.6)
     ax.add_patch(patch)
     # gaiolas
     for coords in gaiolas:
         p = Polygon(coords, closed=True, facecolor=gai, edgecolor='black', alpha=0.7)
         ax.add_patch(p)
-    # pontos
-    ax.plot(*partida, 'o', markersize=10, color=cor_part, label='Partida')
-    ax.plot(*chegada, 'o', markersize=10, color=cor_cheg, label='Chegada')
+    # pontos de partida e chegada
+    ax.plot(partida[0], partida[1], 'o', markersize=10, color=cor_part, label='Partida')
+    ax.plot(chegada[0], chegada[1], 'o', markersize=10, color=cor_cheg, label='Chegada')
 
-    # rota
+    # rota (se fornecida)
     if rota:
         xs, ys = zip(*rota)
         ax.plot(xs, ys, '-', linewidth=2, color='black', label='Rota')
@@ -63,15 +67,14 @@ def desenhar_instancia(nome, partida, chegada, poligono, gaiolas, rota=None, sai
         plt.show()
     plt.close()
 
-
 if __name__ == '__main__':
-    # Exemplo de uso
-    filename = 'instances/inst4.txt'  # altere conforme
+    filename = 'instances/inst11.txt'  # altere conforme necessidade
     nome, partida, chegada, poligono, gaiolas = ler_instancia_txt(filename)
-    # Defina aqui sua rota: lista de coordenadas
-    rota = [(10, 50), (40, 60), (90, 40), (150, 50), (180, 40), (240, 40), (290, 50)]
+    # Exemplo de rota (pode ser float)
+    rota = [
+    ]
     desenhar_instancia(
         nome, partida, chegada, poligono, gaiolas,
         rota=rota,
-        saida_png=filename.replace('.txt', '_rota.png')
+        saida_png=filename.replace('.txt', '.png')
     )

@@ -41,7 +41,7 @@ int orientation(const Point &a, const Point &b, const Point &c) {
     //vetorial_product(AB, BC) = ABx.BCy - ABy.BCx
     std::pair<double, double> ab = {b.get_x() - a.get_x(), b.get_y() - a.get_y()};
     std::pair<double, double> bc = {c.get_x() - b.get_x(), c.get_y() - b.get_y()};
-    double v = (ab.second * bc.first) - (ab.second - bc.first);
+    double v = (ab.first * bc.second) - (ab.second * bc.first);
 
     if (std::abs(v) < 1e-9) return 0; // collinear
     return (v < 0) ? 1 : 2;           // 1: cw, 2: ccw
@@ -59,7 +59,7 @@ bool is_segments_intersection(const Point &p1, const Point &q1, const Point &p2,
     int o4 = orientation(p2, q2, q1);
 
     if (o1 != o2 && o3 != o4) return true;
-    // colinnear cases
+    //colinnear cases
     if (o1 == 0 && on_segment(p1, p2, q1)) return true;
     if (o2 == 0 && on_segment(p1, q2, q1)) return true;
     if (o3 == 0 && on_segment(p2, p1, q2)) return true;

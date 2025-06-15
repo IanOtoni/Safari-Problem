@@ -1,4 +1,4 @@
-Instância Corredor Desafiador
+Challenging Runner Instance
 10 50
 290 50
 4 0 0 300 0 300 100 0 100

@@ -1,4 +1,4 @@
-Instância com Gaiola Não Convexa
+Instance with Non-Convex Cage
 10 80
 80 15
 4 0 0 100 0 100 100 0 100
