@@ -48,9 +48,9 @@ void show_tour(vector<int> tour, vector<Point> nodes){
 int main(){
     //-----------------------------Ant colony parameters-----------------------------//
     const int NUM_ITERATIONS = 1000;
-    const int NUM_ANTS       = 80;
+    const int NUM_ANTS       = 40;
     const double ALFA        = 1.0; //pheromone influence
-    const double BETA        = 5.0; //heuristic influence
+    const double BETA        = 1.0; //heuristic influence
     const double RHO         = 0.2; //evaporation rate
     const double Q           = 100.0; //pheromone deposit factor
     //-------------------------------------------------------------------------------//
@@ -134,6 +134,7 @@ int main(){
             vector<int> tour; //each ant has a tour
             tour.push_back(0); //each tour starts with the departure
             vector<bool> visited_cages(num_cages, false); //controls visited cages
+            vector<bool> visited_nodes(num_nodes, false); //controls visited cages
             int current_node        = 0;
             int visited_cages_count = 0;
 
@@ -145,11 +146,23 @@ int main(){
                 //identify all candidate nodes (vertices of unvisited cages)
                 for(int next_node=1; next_node<arrival_index; ++next_node){
                     int cage_of_node = node_to_cage_map[next_node];
-                    if(visited_cages[cage_of_node]) continue;
-                    
+                    //if(visited_cages[cage_of_node]) continue;
+                    if(visited_nodes[next_node]) continue;
+            
+                    //-----------------------------------------------------------------------------------//
+                    double num_cages_visited = 0;
+                    for(int i=0; i<cages.size(); i++){
+                        if(visited_cages[i]) continue;
+
+                        if(is_intersection_segment_polygon(nodes[current_node], nodes[next_node], cages[i])){
+                            num_cages_visited++;
+                        }
+                    }
+                    //-----------------------------------------------------------------------------------//
+
                     double distance_val = dist[current_node][next_node];
                     double pheromone    = pow(pheromones[current_node][next_node], ALFA);
-                    double heuristic    = pow(1.0 / (distance_val + 1e-9), BETA); // 1e-9 to avoid division by 0
+                    double heuristic    = pow((1e-9  + num_cages_visited * 1.0)/ (distance_val + 1e-9), BETA); // 1e-9 to avoid division by 0
                     double prob         = pheromone * heuristic;
 
                     candidates.push_back(next_node);
@@ -176,7 +189,7 @@ int main(){
                 int chosen_cage = node_to_cage_map[chosen_node];
                 int last_node   = current_node;
                 current_node    = chosen_node;
-
+                visited_nodes[chosen_node] = true;
                 if(!visited_cages[chosen_cage]){
                     visited_cages[chosen_cage] = true;
                     visited_cages_count++;
@@ -225,7 +238,7 @@ int main(){
                 pheromones[v][u] += delta;
             }
         }
-        if(!((iter+1) % 50)) cout << "Iter " << iter+1 << ", best = " << best_length << "\n";
+        if(!((iter+1) % 100)) cout << "Iter " << iter+1 << ", best = " << best_length << "\n";
     }
     //-------------------------------------------------------------------------------//
 
