@@ -6,11 +6,14 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <bitset>
 #include <unordered_map>
 #include "geometria.h"
 
 using namespace std;
 using Polygon = vector<Point>;
+
+#define MAX_CAGES 64
 
 void show_data(const string &name, const Point &departure, const Point &arrival, const Polygon &area, const vector<Polygon> &cages){
     cout << "==========================================================================" << endl;
@@ -37,20 +40,22 @@ void show_data(const string &name, const Point &departure, const Point &arrival,
     cout << "==========================================================================" << endl;
 }
 
-void show_tour(vector<int> tour, vector<Point> nodes){
-    for(int i : tour){
-        nodes[i].show();
-        cout << " ";
+bitset<MAX_CAGES> create_mask(const vector<int> &numbers){
+    bitset<MAX_CAGES> mask; //cria um bitset de MAX_CAGES bits, todos inicializados com 0.
+    
+    for(int num : numbers){
+        mask.set(num);
     }
-    cout << endl;
+    return mask;
 }
+
 
 int main(){
     //-----------------------------Ant colony parameters-----------------------------//
     const int NUM_ITERATIONS = 1000;
     const int NUM_ANTS       = 40;
-    const double ALFA        = 1.0; //pheromone influence
-    const double BETA        = 1.0; //heuristic influence
+    const double ALFA        = 3.0; //pheromone influence
+    const double BETA        = 2.0; //heuristic influence
     const double RHO         = 0.2; //evaporation rate
     const double Q           = 100.0; //pheromone deposit factor
     //-------------------------------------------------------------------------------//
@@ -94,13 +99,11 @@ int main(){
     nodes.push_back(departure);
     vector<int> node_to_cage_map;
     node_to_cage_map.push_back(-1); //mapping each vertex to the index of his cage
-    vector<vector<int>> cage_vertices(num_cages); //mapping each cage to his vertices
 
     for(int i=0; i<num_cages; i++){ //for each cage
         for(Point &vertex : cages[i]){ //for each vertex's cage
             nodes.push_back(vertex); //add in nodes
             node_to_cage_map.push_back(i); //maps the vertex in the box i
-            cage_vertices[i].push_back(nodes.size()-1);
         }
     }
     node_to_cage_map.push_back(-1); //the last node doest have a cage
@@ -109,10 +112,23 @@ int main(){
     int arrival_index = nodes.size() - 1;
     int num_nodes     = nodes.size();
 
-    vector<vector<double>> dist(num_nodes, vector<double>(num_nodes)); //matrix of distances between any pair of points
+    vector<vector<double>> distances(num_nodes, vector<double>(num_nodes)); //matrix of distances between any pair of points
     for(int i=0; i<num_nodes; i++){ 
         for(int j=0; j<num_nodes; j++){ 
-            dist[i][j] = distance(nodes[i], nodes[j]);
+            distances[i][j] = distance(nodes[i], nodes[j]);
+        }
+    }
+
+    vector<vector<bitset<MAX_CAGES>>> cages_intersections(num_nodes, vector<bitset<MAX_CAGES>>(num_nodes)); //matrix that stores intersected cages(non visited) by segment
+    for(int i=0; i<num_nodes; i++){ 
+        for(int j=0; j<num_nodes; j++){
+            vector<int> intersections;
+            for(int k=0; k<num_cages; k++){
+                if(is_intersection_segment_polygon(nodes[i], nodes[j], cages[k])){
+                    intersections.push_back(k);
+                }
+            }
+            cages_intersections[i][j] = create_mask(intersections);
         }
     }
 
@@ -128,47 +144,35 @@ int main(){
     //-----------------------------ACO in his pure state-----------------------------//
     for(int iter=0; iter<NUM_ITERATIONS; iter++){
         vector<vector<int>> all_tours(NUM_ANTS);
-        vector<double> all_lengths(NUM_ANTS);
+        vector<double> tour_lengths(NUM_ANTS);
 
         for(int ant=0; ant<NUM_ANTS; ant++){
             vector<int> tour; //each ant has a tour
             tour.push_back(0); //each tour starts with the departure
-            vector<bool> visited_cages(num_cages, false); //controls visited cages
+            bitset<MAX_CAGES> ant_visited_cages; //controls visited cages
             vector<bool> visited_nodes(num_nodes, false); //controls visited cages
             int current_node        = 0;
-            int visited_cages_count = 0;
 
-            while(visited_cages_count < num_cages){
+            while(ant_visited_cages.count() < num_cages){
                 vector<int> candidates;
                 vector<double> probabilities;
                 double total_prob = 0.0;
 
                 //identify all candidate nodes (vertices of unvisited cages)
-                for(int next_node=1; next_node<arrival_index; ++next_node){
+                for(int next_node=1; next_node<arrival_index; next_node++){
                     int cage_of_node = node_to_cage_map[next_node];
                     //if(visited_cages[cage_of_node]) continue;
                     if(visited_nodes[next_node]) continue;
             
-                    //-----------------------------------------------------------------------------------//
-                    double num_cages_visited = 0;
-                    for(int i=0; i<cages.size(); i++){
-                        if(visited_cages[i]) continue;
-
-                        if(is_intersection_segment_polygon(nodes[current_node], nodes[next_node], cages[i])){
-                            num_cages_visited++;
-                        }
-                    }
-                    //-----------------------------------------------------------------------------------//
-
-                    double distance_val = dist[current_node][next_node];
+                    int num_new_cages   = ((ant_visited_cages ^ cages_intersections[current_node][next_node]) & cages_intersections[current_node][next_node]).count();
+                    double distance_val = distances[current_node][next_node];
                     double pheromone    = pow(pheromones[current_node][next_node], ALFA);
-                    double heuristic    = pow((1e-9  + num_cages_visited * 1.0)/ (distance_val + 1e-9), BETA); // 1e-9 to avoid division by 0
+                    double heuristic    = pow((1e-9  + (double)num_new_cages * 1.0) / (distance_val + 1e-9), BETA); // 1e-9 to avoid division by 0
                     double prob         = pheromone * heuristic;
 
                     candidates.push_back(next_node);
                     probabilities.push_back(prob);
                     total_prob += prob;
-                    
                 }
 
                 //roulette wheel selection
@@ -190,31 +194,23 @@ int main(){
                 int last_node   = current_node;
                 current_node    = chosen_node;
                 visited_nodes[chosen_node] = true;
-                if(!visited_cages[chosen_cage]){
-                    visited_cages[chosen_cage] = true;
-                    visited_cages_count++;
+
+                if(!ant_visited_cages.test(chosen_cage)){
+                    ant_visited_cages.set(chosen_cage);
                 }
 
-                //check if the new segment intercepts some cage
-                
-                for(int i=0; i<cages.size(); i++){
-                    if(!visited_cages[i] && is_intersection_segment_polygon(nodes[last_node], nodes[current_node], cages[i])){
-                        visited_cages[i] = true;
-                        visited_cages_count++;
-                        //cout << "entrou aqui";
-                    }
-                }
-                
+                bitset<MAX_CAGES> new_cages_visited = (ant_visited_cages ^ cages_intersections[last_node][current_node]) & cages_intersections[last_node][current_node];
+                ant_visited_cages |= new_cages_visited;
             }
             tour.push_back(arrival_index); //ends the tour
 
             //compute length
             double L = 0;
             for(int i=0; i<tour.size()-1; i++)
-                L += dist[tour[i]][tour[i+1]];
+                L += distances[tour[i]][tour[i+1]];
 
             all_tours[ant]   = tour;
-            all_lengths[ant] = L;
+            tour_lengths[ant] = L;
 
             if(L<best_length){
                 best_length = L; 
@@ -230,7 +226,7 @@ int main(){
 
         //update pheromones
         for(int k=0; k<NUM_ANTS; k++){
-            double delta      = Q / all_lengths[k];
+            double delta      = Q / tour_lengths[k];
             vector<int> &tour = all_tours[k];
             for(int i = 0; i<tour.size()-1; i++){
                 int u = tour[i], v = tour[i+1];

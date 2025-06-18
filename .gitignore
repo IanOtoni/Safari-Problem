@@ -1,1 +1,5 @@
 safari/
+articles/
+.vscode/
+teste.cpp
+.gitignore

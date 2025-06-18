@@ -66,6 +66,8 @@
         "xtr1common": "cpp",
         "list": "cpp",
         "unordered_map": "cpp",
-        "xhash": "cpp"
+        "xhash": "cpp",
+        "bitset": "cpp",
+        "unordered_set": "cpp"
     }
 }
