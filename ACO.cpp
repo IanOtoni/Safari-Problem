@@ -172,14 +172,14 @@ int main(){
                 vector<double> probabilities;
                 double total_prob = 0.0;
 
-                //identify all candidate nodes (vertices of unvisited cages)
+                //identify all candidate nodes (unvisited vertices)
                 for(int next_node=1; next_node<arrival_index; next_node++){
                     if(visited_nodes[next_node]) continue;
             
                     int num_new_cages   = ((ant_visited_cages ^ cages_intersections[current_node][next_node]) & cages_intersections[current_node][next_node]).count();
                     double distance_val = distances[current_node][next_node];
                     double pheromone    = pow(pheromones[current_node][next_node], ALFA);
-                    double heuristic    = pow((1e-9  + (double)num_new_cages * 1.0) / (distance_val + 1e-9), BETA); // 1e-9 to avoid division by 0
+                    double heuristic    = pow((double)num_new_cages / distance_val, BETA);
                     double prob         = pheromone * heuristic;
 
                     candidates.push_back(next_node);
@@ -209,7 +209,7 @@ int main(){
                 ant_visited_cages.set(chosen_cage);
 
                 bitset<MAX_CAGES> new_cages_visited = (ant_visited_cages ^ cages_intersections[last_node][current_node]) & cages_intersections[last_node][current_node];
-                ant_visited_cages |= new_cages_visited;
+                ant_visited_cages |= new_cages_visited; //or
             }
             tour.push_back(arrival_index); //ends the tour
 
@@ -218,7 +218,7 @@ int main(){
             for(int i=0; i<tour.size()-1; i++)
                 L += distances[tour[i]][tour[i+1]];
 
-            all_tours[ant]   = tour;
+            all_tours[ant]    = tour;
             tour_lengths[ant] = L;
 
             if(L<best_length){
@@ -236,9 +236,9 @@ int main(){
         //update pheromones
         for(int k=0; k<NUM_ANTS; k++){
             double delta      = Q / tour_lengths[k];
-            vector<int> &tour = all_tours[k];
-            for(int i = 0; i<tour.size()-1; i++){
-                int u = tour[i], v = tour[i+1];
+            for(int i = 0; i<all_tours[k].size()-1; i++){
+                int u = all_tours[k][i];
+                int v = all_tours[k][i+1];
                 pheromones[u][v] += delta;
                 pheromones[v][u] += delta;
             }
@@ -248,7 +248,7 @@ int main(){
     //-------------------------------------------------------------------------------//
 
     //-----------------------Print the final result and route-----------------------//
-    cout << endl << "=== Final results ===" << endl;
+    cout << endl << "====== Final results ======" << endl;
     cout << "Approximate optimal distance: "<< best_length <<"\n";
     cout << "Route: [";
     for(int i=0; i<best_tour.size(); i++){
