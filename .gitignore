@@ -2,14 +2,16 @@
 .vscode/
 
 instances_plots/
-safari/
 articles/
+tuning/
 
 teste.cpp
 rasc.cpp
 .gitignore
 a.exe
 
+.RData
+.Rhistory
 
 rasc.cpp
 teste.cpp

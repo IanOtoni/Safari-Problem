@@ -16,32 +16,32 @@ using Polygon = vector<Point>;
 #define MAX_CAGES 64
 
 void show_data(const string &name, const Point &departure, const Point &arrival, const Polygon &area, const vector<Polygon> &cages){
-    cout << "==========================================================================" << endl;
-    cout << name << endl;
-    cout << "departure: "; departure.show(); cout << endl;
-    cout << "arrival: "; arrival.show(); cout << endl;
-    cout << "Area: ";
+    cerr << "==========================================================================" << endl;
+    cerr << name << endl;
+    cerr << "departure: "; departure.show(); cerr << endl;
+    cerr << "arrival: "; arrival.show(); cerr << endl;
+    cerr << "Area: ";
     for(int i=0; i<area.size(); i++){
         area[i].show();
         if(i!=area.size()-1)
-            cout << ", ";
+            cerr << ", ";
     }
-    cout << endl;
-    cout << "Cages:" << endl;;
+    cerr << endl;
+    cerr << "Cages:" << endl;;
     for(int i=0; i<cages.size(); i++){
-        cout << "Cage " << i << ": ";
+        cerr << "Cage " << i << ": ";
         for(int j=0; j<cages[i].size(); j++){
             cages[i][j].show();
             if(j!=cages[i].size()-1)
-                cout << ", ";
+                cerr << ", ";
         }
-        cout << endl;
+        cerr << endl;
     }
-    cout << "==========================================================================" << endl;
+    cerr << "==========================================================================" << endl;
 }
 
 bitset<MAX_CAGES> create_mask(const vector<int> &numbers){
-    bitset<MAX_CAGES> mask; //cria um bitset de MAX_CAGES bits, todos inicializados com 0.
+    bitset<MAX_CAGES> mask; //creates a bitset of MAX_CAGES bits, all initialized to 0
     
     for(int num : numbers){
         mask.set(num);
@@ -64,14 +64,39 @@ cages_intersections: matrix that stores in the position i, j a bitset that is 1 
 ant_cages_intersections: matrix that stores in the position i, j a bitset that is 1 in the position k if the ant already visited the k cage
 */
 
-int main(){
-    //-----------------------------Ant colony parameters-----------------------------//
-    const int NUM_ITERATIONS = 1000;
-    const int NUM_ANTS       = 40;
-    const double ALFA        = 3.0; //pheromone influence
-    const double BETA        = 2.0; //heuristic influence
-    const double RHO         = 0.2; //evaporation rate
-    const double Q           = 100.0; //pheromone deposit factor
+int main(int argc, char* argv[]){
+    ///-----------------------------Ant colony parameters-----------------------------//
+    //Default values ​​if no parameters are passed
+    int NUM_ITERATIONS = 1000;
+    int NUM_ANTS       = 53;
+    double ALFA        = 5.1877; //pheromone influence
+    double BETA        = 3.8149; //heuristic influence
+    double RHO         = 0.2053; //evaporation rate
+    double Q           = 179.5837; //pheromone deposit factor
+
+    //Loop to read command line parameters
+    for(int i=1; i<argc; i+=2){
+        string param = argv[i];
+
+        if(param == "--iter"){
+            NUM_ITERATIONS = stoi(argv[i + 1]);
+
+        }else if (param == "--ants"){
+            NUM_ANTS = stoi(argv[i + 1]);
+
+        }else if (param == "--alfa"){
+            ALFA = stod(argv[i + 1]);
+
+        }else if (param == "--beta"){
+            BETA = stod(argv[i + 1]);
+
+        }else if (param == "--rho"){
+            RHO = stod(argv[i + 1]);
+
+        }else if (param == "--q"){
+            Q = stod(argv[i + 1]);
+        }
+    }
     //-------------------------------------------------------------------------------//
 
     //----------------Reading the instances and storing the polygons----------------//
@@ -179,7 +204,7 @@ int main(){
                     int num_new_cages   = ((ant_visited_cages ^ cages_intersections[current_node][next_node]) & cages_intersections[current_node][next_node]).count();
                     double distance_val = distances[current_node][next_node];
                     double pheromone    = pow(pheromones[current_node][next_node], ALFA);
-                    double heuristic    = pow((double)num_new_cages / distance_val, BETA);
+                    double heuristic    = pow(0.1*(double)num_new_cages, BETA); //pow((double)num_new_cages / distance_val, BETA);
                     double prob         = pheromone * heuristic;
 
                     candidates.push_back(next_node);
@@ -243,19 +268,21 @@ int main(){
                 pheromones[v][u] += delta;
             }
         }
-        if(!((iter+1) % 100)) cout << "Iter " << iter+1 << ", best = " << best_length << "\n";
+        if(!((iter+1) % 100)) cerr << "Iter " << iter+1 << ", best = " << best_length << "\n";
     }
     //-------------------------------------------------------------------------------//
 
     //-----------------------Print the final result and route-----------------------//
-    cout << endl << "====== Final results ======" << endl;
-    cout << "Approximate optimal distance: "<< best_length <<"\n";
-    cout << "Route: [";
+    cerr << endl << "====== Final results ======" << endl;
+    cerr << "Approximate optimal distance: "<< best_length <<"\n";
+    cerr << "Route: [";
     for(int i=0; i<best_tour.size(); i++){
         nodes[best_tour[i]].show();
-        if(i!=best_tour.size()-1) cout << ", ";
+        if(i!=best_tour.size()-1) cerr << ", ";
     }
-    cout << "]" << endl;
+    cerr << "]" << endl;
+
+    cout << best_length << endl;
 
     return 0;
     //-------------------------------------------------------------------------------//

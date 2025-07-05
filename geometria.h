@@ -25,7 +25,7 @@ public:
     }
 
     void show() const{ 
-        std::cout << "(" << x << ", " << y << ")";
+        std::cerr << "(" << x << ", " << y << ")";
     }
 };
 
