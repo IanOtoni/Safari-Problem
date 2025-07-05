@@ -1,18 +1,8 @@
-.pytest_cache/
-.vscode/
+*
 
-instances_plots/
-articles/
-tuning/
-
-teste.cpp
-rasc.cpp
-.gitignore
-a.exe
-
-.RData
-.Rhistory
-
-rasc.cpp
-teste.cpp
-draw_instances.py
+!ACO.cpp
+!geometria.h
+!instances/
+!instances/**
+!.gitignore
+!Readme.txt
