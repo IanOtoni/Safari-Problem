@@ -67,7 +67,7 @@ bool is_segments_intersection(const Point &p1, const Point &q1, const Point &p2,
     return false;
 }
 
-bool is_intersection_segment_polygon(const Point &p1, const Point &p2, const Polygon &polygon) { // Retorna true se o segmento (p1–p2) intercepta qualquer aresta do polígono
+bool is_intersection_segment_polygon(const Point &p1, const Point &p2, const Polygon &polygon) { //returns true if the segment (p1–p2) intersects any edge of the polygon
     int n = polygon.size();
     
     for (int i = 0; i < n; ++i) {
