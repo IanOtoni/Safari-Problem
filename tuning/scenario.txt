@@ -1,0 +1,5 @@
+# Conteúdo FINAL e CORRETO para o seu scenario.txt
+trainInstancesDir = "../instances/"
+parameterFile   = "parameters.txt"
+maxExperiments = 5000
+logFile = "irace.Rdata"
