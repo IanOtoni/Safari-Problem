@@ -68,10 +68,10 @@ def desenhar_instancia(nome, partida, chegada, poligono, gaiolas, rota=None, sai
     plt.close()
 
 if __name__ == '__main__':
-    filename = 'instances/inst8.txt'  # altere conforme necessidade
+    filename = 'instances/inst3.txt'  # altere conforme necessidade
     nome, partida, chegada, poligono, gaiolas = ler_instancia_txt(filename)
     # Exemplo de rota (pode ser float)
-    rota = [(100, 850), (100, 800), (100, 650), (200, 600), (330, 800), (250, 890), (400, 880), (605, 865), (430, 690), (530, 610), (630, 660), (690, 720), (900, 850), (950, 800), (1060, 830), (1130, 760), (1080, 660), (975, 595), (790, 270), (1100, 150)]
+    rota = []
     desenhar_instancia(
         nome, partida, chegada, poligono, gaiolas,
         rota=rota,

@@ -1,7 +1,16 @@
+.pytest_cache/
+.vscode/
+
+instances_plots/
 safari/
 articles/
-.vscode/
+
 teste.cpp
 rasc.cpp
 .gitignore
 a.exe
+
+
+rasc.cpp
+teste.cpp
+draw_instances.py
